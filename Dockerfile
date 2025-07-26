@@ -22,9 +22,6 @@ RUN pnpm install -r --offline --frozen-lockfile
 # Copy source code
 COPY . .
 
-# Generate API types
-RUN mkdir -p ./src/__generated__/api && pnpm run gen:api || echo "// Fallback empty API types" > ./src/__generated__/api/index.ts
-
 # Build Next.js application
 RUN pnpm run build
 
