@@ -28,12 +28,16 @@ RUN pnpm run gen:api
 # Build Next.js application
 RUN pnpm run build
 
+# Verify standalone build was created
+RUN ls -la .next/standalone/ || (echo "Standalone build failed" && exit 1)
+
 # Production stage
 FROM node:18-alpine AS runner
 
 WORKDIR /app
 
 # Copy standalone application (includes all dependencies and runtime)
+# Note: standalone includes its own package.json and node_modules
 COPY --from=builder /app/.next/standalone ./
 
 # Copy static files
@@ -42,6 +46,9 @@ COPY --from=builder /app/public ./public
 
 # Copy generated API types for runtime (if needed by server components)
 COPY --from=builder /app/src/__generated__ ./src/__generated__
+
+# Ensure next.config.js is available (standalone should include it, but copy explicitly)
+COPY --from=builder /app/next.config.js ./
 
 # Install wget for health checks
 RUN apk add --no-cache wget
@@ -60,6 +67,10 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+# Disable package manager auto-install behavior
+ENV SKIP_ENV_VALIDATION=1
+ENV CI=true
+ENV npm_config_yes=true
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
