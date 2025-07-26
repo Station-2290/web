@@ -33,25 +33,18 @@ FROM node:18-alpine AS runner
 
 WORKDIR /app
 
-# Install pnpm
-RUN corepack enable  
-RUN corepack prepare pnpm@latest --activate
+# Copy standalone application (includes all dependencies and runtime)
+COPY --from=builder /app/.next/standalone ./
 
-# Use production package.json (without postinstall script) and lockfile
-COPY package.prod.json ./package.json
-COPY pnpm-lock.yaml ./
-
-# Fetch production dependencies to the store (cached layer)
-RUN pnpm fetch --prod
-
-# Install production dependencies from store (no postinstall script will run)
-RUN pnpm install -r --offline --prod
-
-# Copy built application
-COPY --from=builder /app/.next ./.next
+# Copy static files
+COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/next.config.ts ./next.config.ts
+
+# Copy generated API types for runtime (if needed by server components)
 COPY --from=builder /app/src/__generated__ ./src/__generated__
+
+# Install wget for health checks
+RUN apk add --no-cache wget
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs
@@ -66,9 +59,11 @@ EXPOSE 3000
 
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD curl -f http://localhost:3000/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
 
-CMD ["pnpm", "start"]
+# Start the standalone Next.js server
+CMD ["node", "server.js"]
