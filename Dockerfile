@@ -9,16 +9,21 @@ RUN corepack prepare pnpm@latest --activate
 
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
+
+# Fetch all dependencies to the store (cached layer)
+RUN pnpm fetch
+
+# Copy OpenAPI schema for type generation
 COPY __schemas__ ./__schemas__
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+# Install all dependencies from store (including dev deps for build)
+RUN pnpm install -r --offline --frozen-lockfile
 
 # Copy source code
 COPY . .
 
 # Generate API types
-RUN pnpm run gen:api || true
+RUN mkdir -p ./src/__generated__/api && pnpm run gen:api || echo "// Fallback empty API types" > ./src/__generated__/api/index.ts
 
 # Build Next.js application
 RUN pnpm run build
@@ -34,10 +39,15 @@ RUN corepack prepare pnpm@latest --activate
 
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
+
+# Fetch production dependencies to the store (cached layer)
+RUN pnpm fetch --prod
+
+# Copy OpenAPI schema (might be needed at runtime)
 COPY __schemas__ ./__schemas__
 
-# Install production dependencies only
-RUN pnpm install --prod --frozen-lockfile
+# Install production dependencies from store
+RUN pnpm install -r --offline --prod
 
 # Copy built application
 COPY --from=builder /app/.next ./.next
