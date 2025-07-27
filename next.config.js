@@ -5,10 +5,6 @@ const nextConfig = {
 	typescript: {
 		ignoreBuildErrors: false,
 	},
-	// Ensure clean standalone build
-	experimental: {
-		outputFileTracingRoot: __dirname,
-	},
 };
 
 module.exports = nextConfig;
