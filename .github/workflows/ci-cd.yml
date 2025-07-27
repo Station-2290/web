@@ -16,7 +16,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/web
+  IMAGE_NAME: station-2290/web
 
 jobs:
   test:
