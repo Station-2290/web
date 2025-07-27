@@ -1,6 +1,6 @@
 # Station2290 - Coffee Shop Website
 
-A modern, responsive website for Station2290 coffee shop in Makhachkala, built with Next.js 15, TypeScript, and Tailwind CSS.
+A modern, responsive customer-facing website for Station2290 coffee shop in Makhachkala, built with Next.js 15, TypeScript, and Tailwind CSS. Part of the Station2290 microservices ecosystem.
 
 ## 🚀 Features
 
@@ -45,37 +45,70 @@ A modern, responsive website for Station2290 coffee shop in Makhachkala, built w
 - Form elements, Dialogs, Tooltips
 - And many more from shadcn/ui
 
+## 🏗️ Station2290 Architecture
+
+### Microservices Ecosystem
+
+This website is part of the Station2290 coffee shop management system:
+
+- **Infrastructure**: [Station2290-Infrastructure](https://github.com/Station-2290/infrastructure)
+- **API Backend**: [Station2290-API](https://github.com/Station-2290/api)
+- **Customer Website**: [Station2290-Web](https://github.com/Station-2290/web) (this repository)
+- **WhatsApp Bot**: [Station2290-Bot](https://github.com/Station-2290/bot)
+- **Admin Panel**: [Station2290-Adminka](https://github.com/Station-2290/adminka)
+- **Order Panel**: [Station2290-Order-Panel](https://github.com/Station-2290/order-panel)
+
+### 🔄 Automatic Deployment
+
+This website **deploys automatically** when you push to the `main` branch:
+
+1. **GitHub Actions** builds the Next.js application
+2. **Creates** optimized Docker image
+3. **Deploys** to production VPS via SSH
+4. **Health checks** ensure successful deployment
+5. **Zero downtime** deployment with automatic rollback
+
+**Production URL**: https://station2290.ru
+
 ## 🚀 Getting Started
 
 ### Prerequisites
+
+**For Local Development:**
 - Node.js 18+ 
 - pnpm (recommended) or npm
-- Access to station-2290 organization
+- Access to Station2290 GitHub organization
 
-### Installation
+**For Production Deployment:**
+- Infrastructure repository deployed on VPS
+- GitHub Secrets configured for automated deployment
 
-1. Clone the repository:
+### Local Development Setup
+
+1. **Clone the repository:**
 ```bash
-git clone https://github.com/station-2290/web.git
+git clone https://github.com/Station-2290/web.git
 cd web
 ```
 
-2. Install dependencies:
+2. **Install dependencies:**
 ```bash
 pnpm install
 ```
 
-3. Set up environment variables:
+3. **Set up environment variables:**
 ```bash
 cp .env.example .env
+# Edit .env with your local configuration
 ```
 
-4. Run the development server:
+4. **Run the development server:**
 ```bash
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the application.
+**Local Website**: http://localhost:3000
+**API Integration**: Configure `NEXT_PUBLIC_API_URL` in `.env` to connect to local or remote API
 
 ## 📜 Available Scripts
 
@@ -136,20 +169,50 @@ src/
 - Sitemap and robots.txt generation
 - Performance optimized for Core Web Vitals
 
-## 🚀 Deployment
+## 🚀 Production Deployment
 
-The application is optimized for deployment on Vercel:
+### Automatic Deployment via GitHub Actions
 
-1. Connect the station-2290/web repository to Vercel
-2. Set environment variables in Vercel dashboard
-3. Deploy automatically on every push to main
+The website deploys automatically to the production VPS server:
 
-### Environment Variables
+**Deployment Trigger:**
+- Push to `main` branch
+- Manual workflow dispatch from GitHub Actions
 
+**Deployment Process:**
+1. **Build**: Next.js optimized production build
+2. **Containerization**: Docker image creation
+3. **Registry**: Push to GitHub Container Registry
+4. **VPS Deployment**: SSH deployment to production server
+5. **Health Check**: Verify deployment success
+6. **Service Integration**: Automatic integration with Nginx reverse proxy
+
+### Environment Configuration
+
+**Development Environment:**
 ```env
-# Add your environment variables here
-# See .env.example for reference
+# API Configuration
+NEXT_PUBLIC_API_URL=http://localhost:3000
+
+# Authentication (if NextAuth is used)
+NEXTAUTH_SECRET=your-local-secret
+NEXTAUTH_URL=http://localhost:3000
 ```
+
+**Production Environment:**
+```env
+# Production API
+NEXT_PUBLIC_API_URL=https://api.station2290.ru
+
+# Production Authentication
+NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+NEXTAUTH_URL=https://station2290.ru
+
+# Build Configuration
+NODE_ENV=production
+```
+
+**Note**: Production environment variables are managed by the infrastructure repository and GitHub Secrets.
 
 ## 🤝 Contributing
 
